@@ -17,17 +17,17 @@ window.RACE_GAME_CONFIG = {
     openInNewTab: true
   },
   adsense: {
-    enabled: false,
+    enabled: true,
     strategy: 'manual-result-slot',
-    client: '',
-    resultSlot: '',
-    showDevelopmentPlaceholder: true,
+    client: 'ca-pub-7797843965278219',
+    resultSlot: '2794718712',
+    showDevelopmentPlaceholder: false,
     mountOncePerPageView: true
   },
   analytics: {
-    enabled: false,
+    enabled: true,
     mode: 'gtag',
-    measurementId: '',
+    measurementId: 'G-GW1P90GHX8',
     sendPageView: true
   }
 };

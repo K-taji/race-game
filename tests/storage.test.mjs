@@ -90,3 +90,29 @@ test('previous result rejects oversized or out-of-range runner lists', () => {
 
   assert.equal(readPreviousResult(storage), null);
 });
+
+test('previous result rejects duplicated runner lists', () => {
+  const storage = createMemoryStorage();
+  storage.setItem(PREVIOUS_RESULT_STORAGE_KEY, JSON.stringify({
+    runnerCount: 8,
+    mode: 'normal',
+    favoriteRunner: null,
+    topFive: [2, 5, 1, 5, 8],
+    completedAt: '2026-06-07T03:34:56.000Z'
+  }));
+
+  assert.equal(readPreviousResult(storage), null);
+});
+
+test('previous result rejects favorite records that do not put the favorite first', () => {
+  const storage = createMemoryStorage();
+  storage.setItem(PREVIOUS_RESULT_STORAGE_KEY, JSON.stringify({
+    runnerCount: 8,
+    mode: 'favorite',
+    favoriteRunner: 7,
+    topFive: [2, 7, 1, 5, 8],
+    completedAt: '2026-06-07T03:34:56.000Z'
+  }));
+
+  assert.equal(readPreviousResult(storage), null);
+});

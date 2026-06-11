@@ -41,18 +41,33 @@ function isPreviousResult(value) {
     value.runnerCount < 2 ||
     value.runnerCount > 18 ||
     (value.mode !== 'normal' && value.mode !== 'favorite') ||
-    !Array.isArray(value.topFive) ||
-    value.topFive.length < 1 ||
-    value.topFive.length > 5 ||
-    !value.topFive.every((runner) => Number.isInteger(runner) && runner >= 1 && runner <= value.runnerCount) ||
+    !isValidTopFive(value.topFive, value.runnerCount) ||
     typeof value.completedAt !== 'string'
   ) {
     return false;
   }
 
   if (value.mode === 'favorite') {
-    return Number.isInteger(value.favoriteRunner) && value.favoriteRunner >= 1 && value.favoriteRunner <= value.runnerCount;
+    return (
+      Number.isInteger(value.favoriteRunner) &&
+      value.favoriteRunner >= 1 &&
+      value.favoriteRunner <= value.runnerCount &&
+      value.topFive[0] === value.favoriteRunner
+    );
   }
 
   return value.favoriteRunner === null;
+}
+
+function isValidTopFive(topFive, runnerCount) {
+  if (
+    !Array.isArray(topFive) ||
+    topFive.length < 1 ||
+    topFive.length > 5 ||
+    !topFive.every((runner) => Number.isInteger(runner) && runner >= 1 && runner <= runnerCount)
+  ) {
+    return false;
+  }
+
+  return new Set(topFive).size === topFive.length;
 }

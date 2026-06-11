@@ -4,6 +4,7 @@ import {
   createAnalytics,
   isValidGa4MeasurementId
 } from '../public_html/race-game/assets/js/integrations/analytics.js';
+import { createAdsenseController } from '../public_html/race-game/assets/js/integrations/adsense.js';
 import { createDonationModel, isValidDonationUrl } from '../public_html/race-game/assets/js/integrations/donation.js';
 
 test('donation URL accepts HTTPS only', () => {
@@ -97,6 +98,50 @@ test('analytics stays silent when unset', () => {
   assert.equal(analytics.track('game_start', { runner_count: 12 }), false);
 });
 
+test('adsense shows development placeholder until production IDs are configured', () => {
+  const view = createFakeAdsenseDocument();
+  const adsense = createAdsenseController(
+    { enabled: false, showDevelopmentPlaceholder: true },
+    view.doc,
+    {}
+  );
+
+  const result = adsense.mountResultAd();
+
+  assert.equal(result.status, 'placeholder');
+  assert.equal(view.placeholder.hidden, false);
+  assert.equal(view.section.hasClass('is-hidden'), false);
+  assert.equal(view.slot.children.length, 0);
+});
+
+test('adsense mounts production unit only once per page view', () => {
+  const view = createFakeAdsenseDocument();
+  const win = { adsbygoogle: [] };
+  const adsense = createAdsenseController(
+    {
+      enabled: true,
+      strategy: 'manual-result-slot',
+      client: 'ca-pub-1234567890123456',
+      resultSlot: '1234567890',
+      mountOncePerPageView: true
+    },
+    view.doc,
+    win
+  );
+
+  const firstResult = adsense.mountResultAd();
+  const secondResult = adsense.mountResultAd();
+
+  assert.equal(firstResult.status, 'mounted');
+  assert.equal(secondResult.status, 'already-mounted');
+  assert.equal(view.placeholder.hidden, true);
+  assert.equal(view.slot.children.length, 1);
+  assert.equal(view.slot.children[0].className, 'adsbygoogle');
+  assert.equal(view.slot.children[0].dataset.adClient, 'ca-pub-1234567890123456');
+  assert.equal(view.slot.children[0].dataset.adSlot, '1234567890');
+  assert.equal(win.adsbygoogle.length, 1);
+});
+
 function createFakeDocument(scripts) {
   return {
     createElement(tagName) {
@@ -122,6 +167,60 @@ function createFakeDocument(scripts) {
     },
     querySelectorAll() {
       return scripts;
+    }
+  };
+}
+
+function createFakeAdsenseDocument() {
+  const sectionClasses = new Set(['is-hidden']);
+  const section = {
+    classList: {
+      add(name) {
+        sectionClasses.add(name);
+      },
+      remove(name) {
+        sectionClasses.delete(name);
+      }
+    },
+    hasClass(name) {
+      return sectionClasses.has(name);
+    }
+  };
+  const slot = {
+    children: [],
+    replaceChildren(...children) {
+      this.children = children;
+    }
+  };
+  const placeholder = { hidden: true };
+
+  return {
+    section,
+    slot,
+    placeholder,
+    doc: {
+      createElement(tagName) {
+        assert.equal(tagName, 'ins');
+        return {
+          className: '',
+          style: {},
+          dataset: {}
+        };
+      },
+      getElementById(id) {
+        if (id === 'result-ad-section') {
+          return section;
+        }
+
+        if (id === 'adsense-result-slot') {
+          return slot;
+        }
+
+        return null;
+      },
+      querySelector(selector) {
+        return selector === '#result-ad-section .adsense-placeholder' ? placeholder : null;
+      }
     }
   };
 }

@@ -62,6 +62,12 @@ window.RACE_GAME_CONFIG = {
     enabled: false,
     provider: 'external-link',
     url: '',
+    scriptSrc: '',
+    usercode: '',
+    entryId: '',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: '',
     buttonLabel: 'このゲームを応援する',
     openInNewTab: true
   },
@@ -135,16 +141,17 @@ window.RACE_GAME_CONFIG = {
 
 ## 8. カンパ
 
-- `donation.enabled`が`true`で、HTTPS URLが有効な場合だけカードを表示する。
-- `provider`は初期版で`external-link`とする。
+- `donation.enabled`が`true`で、providerごとの必須設定が有効な場合だけカードを表示する。
+- `provider`は`external-link`と`codoc-widget`に対応する。
 - 外部リンクは新しいタブで開き、`rel="noopener noreferrer"`を付ける。
-- サービス固有ウィジェットが必要になった場合は`integrations/donation.js`だけを拡張する。
+- `codoc-widget`は結果画面のカンパカード内へ`codoc-entries`要素を描画し、結果画面表示後に`https://codoc.jp/js/cms.js`を読み込む。
+- codocの`usercode`、`entryId`、テーマ、応援メッセージは`config/app-config.js`で管理する。
 
 ## 9. AdSense
 
 ### 方針
 
-- 手動広告ユニットを結果画面下に表示する。
+- 手動広告ユニットを初期画面下に表示する。
 - 広告連携は`integrations/adsense.js`へ分離する。
 - 広告は1ページビューにつき初回だけマウントする。
 - リプレイで広告を自動更新しない。

@@ -10,9 +10,15 @@ window.RACE_GAME_CONFIG = {
     savePreviousResult: true
   },
   donation: {
-    enabled: false,
-    provider: 'external-link',
+    enabled: true,
+    provider: 'codoc-widget',
     url: '',
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: 'サービス継続のため、応援していただけると励みになります！',
     buttonLabel: 'このゲームを応援する',
     openInNewTab: true
   },

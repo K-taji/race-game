@@ -9,7 +9,7 @@ export function createAdsenseController(config = {}, doc = globalThis.document, 
     getSection()?.classList.add('is-hidden');
   }
 
-  function mountResultAd() {
+  function mountAd() {
     show();
 
     const slot = getSlot();
@@ -24,8 +24,8 @@ export function createAdsenseController(config = {}, doc = globalThis.document, 
     }
 
     if (!isReadyForProductionAd(config)) {
-      if (placeholder && config.showDevelopmentPlaceholder !== false) {
-        placeholder.hidden = false;
+      if (placeholder) {
+        placeholder.hidden = config.showDevelopmentPlaceholder === false;
       }
 
       return { mounted, status: 'placeholder' };
@@ -57,18 +57,20 @@ export function createAdsenseController(config = {}, doc = globalThis.document, 
   }
 
   function getSection() {
-    return doc?.getElementById('result-ad-section') || null;
+    return doc?.getElementById('page-ad-section') || doc?.getElementById('result-ad-section') || null;
   }
 
   function getSlot() {
-    return doc?.getElementById('adsense-result-slot') || null;
+    return doc?.getElementById('adsense-page-slot') || doc?.getElementById('adsense-result-slot') || null;
   }
 
   function getPlaceholder() {
-    return doc?.querySelector('#result-ad-section .adsense-placeholder') || null;
+    return doc?.querySelector('#page-ad-section .adsense-placeholder') ||
+      doc?.querySelector('#result-ad-section .adsense-placeholder') ||
+      null;
   }
 
-  return { show, hide, mountResultAd };
+  return { show, hide, mountAd, mountResultAd: mountAd };
 }
 
 function isReadyForProductionAd(config) {

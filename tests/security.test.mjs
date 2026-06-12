@@ -92,6 +92,32 @@ test('donation link rendering escapes attributes and label text', () => {
   assert.equal(html.includes('rel="noopener noreferrer"'), true);
 });
 
+test('codoc donation rendering escapes widget attributes', () => {
+  const html = renderResultScreen({
+    donationModel: {
+      provider: 'codoc-widget',
+      entryId: 'codoc-entry-WpM4H1O7dw',
+      withoutBody: true,
+      supportMessage: '<img src=x onerror=alert(1)>'
+    },
+    state: {
+      raceResult: {
+        topFive: [1, 2, 3, 4, 5],
+        favoriteModeEnabled: false,
+        favoriteRunner: null
+      }
+    }
+  });
+
+  assert.equal(html.includes('<img src=x onerror=alert(1)>'), false);
+  assert.equal(html.includes('&lt;img src=x onerror=alert(1)&gt;'), true);
+  assert.equal(html.includes('id="codoc-entry-WpM4H1O7dw"'), true);
+  assert.equal(html.includes('class="codoc-entries"'), true);
+  assert.equal(html.includes('data-without-body="1"'), true);
+  assert.equal(html.includes('data-donation-track'), true);
+  assert.equal(html.includes('data-donation-widget'), true);
+});
+
 test('external IDs and URLs reject common injection schemes', () => {
   assert.equal(isValidDonationUrl('javascript:alert(1)'), false);
   assert.equal(isValidDonationUrl('data:text/html,<script>alert(1)</script>'), false);

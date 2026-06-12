@@ -18,13 +18,43 @@ donation: {
 }
 ```
 
-サービス決定後、HTTPS URLを入れて`enabled: true`へ変更します。将来ウィジェット連携が必要な場合は`integrations/donation.js`へproviderアダプターを追加します。
+外部ページへ遷移するサービスの場合は、HTTPS URLを入れて`enabled: true`へ変更します。
+
+```js
+donation: {
+  enabled: true,
+  provider: 'external-link',
+  url: 'https://example.com/support',
+  buttonLabel: 'このゲームを応援する',
+  openInNewTab: true
+}
+```
+
+codocの埋め込みタグを使う場合は、次のように設定します。
+
+```js
+donation: {
+  enabled: true,
+  provider: 'codoc-widget',
+  url: '',
+  scriptSrc: 'https://codoc.jp/js/cms.js',
+  usercode: 'JdIoKQVeqw',
+  entryId: 'codoc-entry-WpM4H1O7dw',
+  theme: 'rainbow-square',
+  withoutBody: true,
+  supportMessage: 'サービス継続のため、応援していただけると励みになります！',
+  buttonLabel: 'このゲームを応援する',
+  openInNewTab: true
+}
+```
+
+`source/カンパタグ.txt`は原本保管用です。本番へはアップロードせず、公開側には`config/app-config.js`の設定と`integrations/donation.js`の連携コードだけを置きます。
 
 ## 3. AdSense
 
 ### 推奨方式
 
-結果画面下の手動広告ユニットを1ページビューにつき1回だけマウントします。リプレイで再マウントしません。
+初期画面下の手動広告ユニットを1ページビューにつき1回だけマウントします。リプレイで再マウントしません。
 
 ```js
 adsense: {

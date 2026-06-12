@@ -158,7 +158,8 @@ analytics: {
 ## 14. カンパ追加時
 
 1. 外部サービスを選ぶ。
-2. HTTPS URLを取得する。
-3. `donation.url`へ設定する。
+2. 外部リンク型の場合はHTTPS URLを取得し、`donation.url`へ設定する。
+3. codoc埋め込み型の場合は`scriptSrc`、`usercode`、`entryId`、`theme`、`supportMessage`を`donation`へ設定する。
 4. `donation.enabled`を`true`にする。
-5. 新しいタブ、GA4イベント、文言、広告との分離を確認する。
+5. 結果画面でカンパカードが表示されることを確認する。
+6. クリック時のGA4イベント、文言、広告との分離を確認する。

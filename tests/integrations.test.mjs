@@ -5,7 +5,12 @@ import {
   isValidGa4MeasurementId
 } from '../public_html/race-game/assets/js/integrations/analytics.js';
 import { createAdsenseController } from '../public_html/race-game/assets/js/integrations/adsense.js';
-import { createDonationModel, isValidDonationUrl } from '../public_html/race-game/assets/js/integrations/donation.js';
+import {
+  createDonationController,
+  createDonationModel,
+  isValidCodocConfig,
+  isValidDonationUrl
+} from '../public_html/race-game/assets/js/integrations/donation.js';
 
 test('donation URL accepts HTTPS only', () => {
   assert.equal(isValidDonationUrl('https://example.com/support'), true);
@@ -35,6 +40,98 @@ test('donation model uses safe external-link attributes', () => {
     target: '_blank',
     rel: 'noopener noreferrer'
   });
+});
+
+test('codoc donation model uses configured widget attributes', () => {
+  const model = createDonationModel({
+    enabled: true,
+    provider: 'codoc-widget',
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: 'サービス継続のため、応援していただけると励みになります！'
+  });
+
+  assert.deepEqual(model, {
+    provider: 'codoc-widget',
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: 'サービス継続のため、応援していただけると励みになります！'
+  });
+});
+
+test('codoc donation model rejects unexpected scripts and IDs', () => {
+  assert.equal(isValidCodocConfig({
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw'
+  }), true);
+  assert.equal(isValidCodocConfig({
+    scriptSrc: 'https://evil.example/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw'
+  }), false);
+  assert.equal(isValidCodocConfig({
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw<script>',
+    entryId: 'codoc-entry-WpM4H1O7dw'
+  }), false);
+  assert.equal(isValidCodocConfig({
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-"><script>'
+  }), false);
+});
+
+test('codoc donation controller mounts script after result widget exists', () => {
+  const appendedScripts = [];
+  const existingScript = {
+    removed: false,
+    remove() {
+      this.removed = true;
+    }
+  };
+  const doc = {
+    body: {
+      appendChild(script) {
+        appendedScripts.push(script);
+      }
+    },
+    createElement(tagName) {
+      assert.equal(tagName, 'script');
+      return { dataset: {} };
+    },
+    getElementById(id) {
+      return id === 'codoc-entry-WpM4H1O7dw' ? {} : null;
+    },
+    querySelector(selector) {
+      return selector === 'script[data-race-game-donation-script="codoc-widget"]' ? existingScript : null;
+    }
+  };
+  const donation = createDonationController({
+    provider: 'codoc-widget',
+    scriptSrc: 'https://codoc.jp/js/cms.js',
+    usercode: 'JdIoKQVeqw',
+    entryId: 'codoc-entry-WpM4H1O7dw',
+    theme: 'rainbow-square'
+  }, doc);
+
+  const result = donation.mount();
+
+  assert.deepEqual(result, { mounted: true, status: 'mounted' });
+  assert.equal(existingScript.removed, true);
+  assert.equal(appendedScripts.length, 1);
+  assert.equal(appendedScripts[0].src, 'https://codoc.jp/js/cms.js');
+  assert.equal(appendedScripts[0].charset, 'UTF-8');
+  assert.equal(appendedScripts[0].defer, true);
+  assert.equal(appendedScripts[0].dataset.css, 'rainbow-square');
+  assert.equal(appendedScripts[0].dataset.usercode, 'JdIoKQVeqw');
+  assert.equal(appendedScripts[0].dataset.raceGameDonationScript, 'codoc-widget');
 });
 
 test('analytics gtag mode sends events only when configured', () => {
@@ -106,10 +203,26 @@ test('adsense shows development placeholder until production IDs are configured'
     {}
   );
 
-  const result = adsense.mountResultAd();
+  const result = adsense.mountAd();
 
   assert.equal(result.status, 'placeholder');
   assert.equal(view.placeholder.hidden, false);
+  assert.equal(view.section.hasClass('is-hidden'), false);
+  assert.equal(view.slot.children.length, 0);
+});
+
+test('adsense keeps placeholder hidden when production IDs are missing and placeholder is disabled', () => {
+  const view = createFakeAdsenseDocument();
+  const adsense = createAdsenseController(
+    { enabled: false, showDevelopmentPlaceholder: false },
+    view.doc,
+    {}
+  );
+
+  const result = adsense.mountAd();
+
+  assert.equal(result.status, 'placeholder');
+  assert.equal(view.placeholder.hidden, true);
   assert.equal(view.section.hasClass('is-hidden'), false);
   assert.equal(view.slot.children.length, 0);
 });
@@ -129,8 +242,8 @@ test('adsense mounts production unit only once per page view', () => {
     win
   );
 
-  const firstResult = adsense.mountResultAd();
-  const secondResult = adsense.mountResultAd();
+  const firstResult = adsense.mountAd();
+  const secondResult = adsense.mountAd();
 
   assert.equal(firstResult.status, 'mounted');
   assert.equal(secondResult.status, 'already-mounted');
@@ -208,18 +321,18 @@ function createFakeAdsenseDocument() {
         };
       },
       getElementById(id) {
-        if (id === 'result-ad-section') {
+        if (id === 'page-ad-section') {
           return section;
         }
 
-        if (id === 'adsense-result-slot') {
+        if (id === 'adsense-page-slot') {
           return slot;
         }
 
         return null;
       },
       querySelector(selector) {
-        return selector === '#result-ad-section .adsense-placeholder' ? placeholder : null;
+        return selector === '#page-ad-section .adsense-placeholder' ? placeholder : null;
       }
     }
   };

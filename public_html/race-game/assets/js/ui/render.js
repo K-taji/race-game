@@ -183,11 +183,24 @@ function renderDonationCard(donationModel) {
     return '';
   }
 
+  if (donationModel.provider === 'codoc-widget') {
+    const withoutBodyAttribute = donationModel.withoutBody ? ' data-without-body="1"' : '';
+    const supportMessageAttribute = donationModel.supportMessage
+      ? ` data-support-message="${escapeHtml(donationModel.supportMessage)}"`
+      : '';
+
+    return `
+      <section class="donation-card codoc-donation-card" aria-label="カンパ" data-donation-track>
+        <div id="${escapeHtml(donationModel.entryId)}" class="codoc-entries" data-donation-widget${withoutBodyAttribute}${supportMessageAttribute}></div>
+        <p class="subtle">カンパの有無で抽選結果や機能は変わりません。</p>
+      </section>
+    `;
+  }
+
   const relAttribute = donationModel.rel ? ` rel="${escapeHtml(donationModel.rel)}"` : '';
 
   return `
     <section class="donation-card" aria-label="カンパ">
-      <p>このゲームの運営を応援していただけると、今後の開発の励みになります。</p>
       <a class="donation-button" href="${escapeHtml(donationModel.url)}" target="${escapeHtml(donationModel.target)}"${relAttribute} data-donation-link>${escapeHtml(donationModel.buttonLabel)}</a>
       <p class="subtle">カンパの有無で抽選結果や機能は変わりません。</p>
     </section>

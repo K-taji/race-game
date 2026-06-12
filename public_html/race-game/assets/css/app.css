@@ -585,6 +585,10 @@ button:disabled {
   gap: 10px;
 }
 
+.codoc-donation-card .codoc-entries {
+  width: 100%;
+}
+
 .donation-button {
   color: #fff8df;
   background: #9b692b;
@@ -614,6 +618,10 @@ button:disabled {
   place-items: center;
   background: rgba(255, 255, 255, 0.45);
   border-radius: 6px;
+}
+
+.adsense-placeholder[hidden] {
+  display: none !important;
 }
 
 .is-hidden {

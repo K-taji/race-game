@@ -13,6 +13,12 @@ window.RACE_GAME_CONFIG = {
     enabled: false,
     provider: 'external-link',
     url: '',
+    scriptSrc: '',
+    usercode: '',
+    entryId: '',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: '',
     buttonLabel: 'このゲームを応援する',
     openInNewTab: true
   },

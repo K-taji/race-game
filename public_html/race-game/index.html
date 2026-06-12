@@ -16,7 +16,7 @@
   <!-- gtagはconfig/app-config.jsのanalytics設定から自動読み込み。GTMなど手動タグが必要な場合だけ貼る -->
   <!-- ANALYTICS_HEAD_CODE_END -->
 
-  <link rel="stylesheet" href="./assets/css/app.css?v=horse-face-png-20260608">
+  <link rel="stylesheet" href="./assets/css/app.css?v=setup-ad-20260612">
 </head>
 <body>
   <!-- ANALYTICS_BODY_CODE_START -->
@@ -25,13 +25,13 @@
 
   <main id="race-game-root" class="app-shell" aria-live="polite"></main>
 
-  <section id="result-ad-section" class="ad-section is-hidden" aria-label="広告">
+  <section id="page-ad-section" class="ad-section is-hidden" aria-label="広告">
     <p class="monetization-label">広告</p>
-    <div id="adsense-result-slot"></div>
-    <p class="adsense-placeholder">広告エリア</p>
+    <div id="adsense-page-slot"></div>
+    <p class="adsense-placeholder" hidden>広告エリア</p>
   </section>
 
-  <script src="./config/app-config.js"></script>
-  <script type="module" src="./assets/js/app.js?v=commentary-style-20260608"></script>
+  <script src="./config/app-config.js?v=codoc-donation-20260612"></script>
+  <script type="module" src="./assets/js/app.js?v=donation-copy-20260612"></script>
 </body>
 </html>

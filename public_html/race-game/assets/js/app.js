@@ -1,10 +1,10 @@
 import { createRaceResult, createRaceStages, normalizeRunnerCount, RaceValidationError } from './core/race-engine.js';
 import { CryptoUnavailableError } from './core/random.js';
 import { createPreviousResultRecord, readPreviousResult, writePreviousResult } from './core/storage.js';
-import { createAdsenseController } from './integrations/adsense.js';
+import { createAdsenseController } from './integrations/adsense.js?v=setup-ad-20260612';
 import { createAnalytics } from './integrations/analytics.js';
-import { createDonationModel } from './integrations/donation.js';
-import { renderRaceScreen, renderResultScreen, renderSetupScreen } from './ui/render.js?v=horse-face-png-20260608';
+import { createDonationController, createDonationModel } from './integrations/donation.js?v=codoc-donation-20260612';
+import { renderRaceScreen, renderResultScreen, renderSetupScreen } from './ui/render.js?v=donation-copy-20260612';
 
 const DEFAULT_CONFIG = {
   app: {
@@ -21,6 +21,12 @@ const DEFAULT_CONFIG = {
     enabled: false,
     provider: 'external-link',
     url: '',
+    scriptSrc: '',
+    usercode: '',
+    entryId: '',
+    theme: 'rainbow-square',
+    withoutBody: true,
+    supportMessage: '',
     buttonLabel: 'このゲームを応援する',
     openInNewTab: true
   },
@@ -167,6 +173,7 @@ const config = mergeConfig(DEFAULT_CONFIG, window.RACE_GAME_CONFIG || {});
 const root = document.getElementById('race-game-root');
 const analytics = createAnalytics(config.analytics, window);
 const donationModel = createDonationModel(config.donation);
+const donation = createDonationController(donationModel, document);
 const adsense = createAdsenseController(config.adsense, document, window);
 
 const state = {
@@ -191,13 +198,14 @@ function render() {
     return;
   }
 
-  if (state.screen !== 'result') {
+  if (state.screen !== 'setup') {
     adsense.hide();
   }
 
   if (state.screen === 'setup') {
     root.innerHTML = renderSetupScreen({ state, config });
     bindSetupEvents();
+    adsense.mountAd();
     return;
   }
 
@@ -209,7 +217,7 @@ function render() {
 
   root.innerHTML = renderResultScreen({ state, config, donationModel });
   bindResultEvents();
-  adsense.mountResultAd();
+  donation.mount();
 }
 
 function bindSetupEvents() {
@@ -275,6 +283,13 @@ function bindResultEvents() {
   });
 
   root.querySelector('[data-donation-link]')?.addEventListener('click', () => {
+    analytics.track('donation_button_click', {
+      location: 'result',
+      provider: donationModel?.provider
+    });
+  });
+
+  root.querySelector('[data-donation-track]')?.addEventListener('click', () => {
     analytics.track('donation_button_click', {
       location: 'result',
       provider: donationModel?.provider
